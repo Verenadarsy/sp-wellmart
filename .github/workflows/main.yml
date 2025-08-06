@@ -23,7 +23,7 @@ jobs:
         uses: docker/build-push-action@v4
         with:
           context: ./backend
-          file: ./backend/dockerfile
+          file: ./backend/Dockerfile
           push: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/wellmart-backend:latest
           
@@ -31,7 +31,7 @@ jobs:
         uses: docker/build-push-action@v4
         with:
           context: ./frontend
-          file: ./frontend/dockerfile
+          file: ./frontend/Dockerfile
           push: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/wellmart-frontend:latest
 
@@ -43,6 +43,10 @@ jobs:
           username: ec2-user
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
+            # Menghentikan proses PM2 yang lama di EC2 publik sebelum deploy
+            pm2 stop wellmart-frontend || true
+            pm2 delete wellmart-frontend || true
+
             # Login ke EC2 backend dari EC2 frontend dan jalankan perintah Docker
             chmod 400 aaws_pertama_saya.pem
             ssh -o StrictHostKeyChecking=no -i aaws_pertama_saya.pem ec2-user@${{ secrets.BACKEND_EC2_PRIVATE_IP }} << EOF
@@ -50,13 +54,14 @@ jobs:
               sudo docker pull ${{ secrets.DOCKERHUB_USERNAME }}/wellmart-backend:latest
               sudo docker stop wellmart-backend || true
               sudo docker rm wellmart-backend || true
+              
               sudo docker run -d --name wellmart-backend --network host -p 3000:3000 \
                 --env-file /home/ec2-user/sp-wellmart/backend/.env \
                 ${{ secrets.DOCKERHUB_USERNAME }}/wellmart-backend:latest
               echo "Backend deployed."
             EOF
 
-            # Deployment Frontend
+            # Deployment Frontend (berada di EC2 publik)
             sudo docker pull ${{ secrets.DOCKERHUB_USERNAME }}/wellmart-frontend:latest
             sudo docker stop wellmart-frontend || true
             sudo docker rm wellmart-frontend || true
