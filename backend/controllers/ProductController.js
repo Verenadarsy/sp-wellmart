@@ -1,6 +1,8 @@
+// CommonJS-style
+const fs = require('fs');
 const Product = require('../models/Product.js');
-import { s3, bucketName } from '../config/s3.js'; // Impor S3 config
-import fs from 'fs'; // Node.js built-in module
+const { s3, bucketName } = require('../config/s3.js');
+
 
 // URL CloudFront Anda. Ganti dengan domain Anda.
 const CLOUDFRONT_DOMAIN = 'https://d12345.cloudfront.net';
