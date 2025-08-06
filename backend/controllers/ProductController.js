@@ -1,4 +1,4 @@
-import Product from '../models/Product.js';
+const Product = require('../models/Product.js');
 import { s3, bucketName } from '../config/s3.js'; // Impor S3 config
 import fs from 'fs'; // Node.js built-in module
 
