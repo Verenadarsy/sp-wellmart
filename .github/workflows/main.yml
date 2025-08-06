@@ -1,37 +1,79 @@
-name: Deploy to AWS EC2
+name: CI/CD Pipeline with Docker
 
 on:
   push:
     branches:
-      - main  # Memastikan branch utama adalah 'main'
+      - main
 
 jobs:
-  deploy:
+  build-and-deploy:
     runs-on: ubuntu-latest
 
     steps:
+      # 1. Checkout kode dari repository
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
-      - name: Set up SSH
-        uses: webfactory/ssh-agent@v0.5.3
+      # 2. Login ke Docker Hub (atau Docker Registry lainnya)
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v2
         with:
-          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Deploy to EC2
-        run: |
-          ssh -o StrictHostKeyChecking=no ec2-user@54.252.237.142 << 'EOF'
-          # Ganti path di bawah ini dengan direktori tempat Anda meng-clone proyek di EC2
-          cd /home/ec2-user/sp-wellmart 
-
-          # Ambil perubahan terbaru dari GitHub
-          git pull origin main
-
-          # Instal dependensi baru jika ada
-          npm install
-
-          # Jalankan ulang aplikasi Node.js Anda
-          # Contoh jika Anda menggunakan PM2
-          pm2 restart all 
+      # 3. Build & Push image backend
+      - name: Build and push backend Docker image
+        id: build-backend
+        uses: docker/build-push-action@v4
+        with:
+          context: ./backend # Lokasi Dockerfile backend
+          file: ./backend/dockerfile
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/wellmart-backend:latest
           
-          EOF
+      # 4. Build & Push image frontend
+      - name: Build and push frontend Docker image
+        id: build-frontend
+        uses: docker/build-push-action@v4
+        with:
+          context: ./frontend # Lokasi Dockerfile frontend
+          file: ./frontend/dockerfile
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/wellmart-frontend:latest
+
+      # 5. Deploy ke EC2 Backend (Private Subnet)
+      - name: Deploy backend container to private EC2
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.BACKEND_EC2_PRIVATE_IP }}
+          username: ec2-user
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            # Pull image Docker terbaru
+            docker pull ${{ secrets.DOCKERHUB_USERNAME }}/wellmart-backend:latest
+            # Hentikan container lama jika ada
+            docker stop wellmart-backend || true
+            docker rm wellmart-backend || true
+            # Jalankan container baru dengan env dari .env
+            docker run -d --name wellmart-backend --network host -p 3000:3000 \
+              --env-file /home/ec2-user/sp-wellmart/backend/.env \
+              ${{ secrets.DOCKERHUB_USERNAME }}/wellmart-backend:latest
+
+      # 6. Deploy ke EC2 Frontend (Public Subnet)
+      - name: Deploy frontend container to public EC2
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.FRONTEND_EC2_PUBLIC_IP }}
+          username: ec2-user
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            # Pull image Docker terbaru
+            docker pull ${{ secrets.DOCKERHUB_USERNAME }}/wellmart-frontend:latest
+            # Hentikan container lama jika ada
+            docker stop wellmart-frontend || true
+            docker rm wellmart-frontend || true
+            # Jalankan container baru
+            docker run -d --name wellmart-frontend --network host -p 5000:5000 \
+              ${{ secrets.DOCKERHUB_USERNAME }}/wellmart-frontend:latest
+            # Restart Nginx untuk memastikan semua konfigurasi terbaru terload
+            sudo systemctl restart nginx
