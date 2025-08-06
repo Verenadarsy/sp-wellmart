@@ -1,0 +1,37 @@
+name: Deploy to AWS EC2
+
+on:
+  push:
+    branches:
+      - main  # Memastikan branch utama adalah 'main'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up SSH
+        uses: webfactory/ssh-agent@v0.5.3
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+      - name: Deploy to EC2
+        run: |
+          ssh -o StrictHostKeyChecking=no ec2-user@54.252.237.142 << 'EOF'
+          # Ganti path di bawah ini dengan direktori tempat Anda meng-clone proyek di EC2
+          cd /home/ec2-user/sp-wellmart 
+
+          # Ambil perubahan terbaru dari GitHub
+          git pull origin main
+
+          # Instal dependensi baru jika ada
+          npm install
+
+          # Jalankan ulang aplikasi Node.js Anda
+          # Contoh jika Anda menggunakan PM2
+          pm2 restart all 
+          
+          EOF
