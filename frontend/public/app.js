@@ -56,7 +56,8 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             productList.innerHTML = '<div style="text-align: center; padding: 2rem; color: #667eea; font-size: 1.1rem;">⏳ Memuat produk...</div>';
 
-            const res = await fetch('/api/products');
+            const res = await fetch('http://54.252.237.142/api/products');
+            // const res = await fetch('/api/products'); // Uncomment this line if using relative path
 
             if (!res.ok) {
                 throw new Error(`HTTP error! status: ${res.status}`);
