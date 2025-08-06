@@ -23,7 +23,7 @@ jobs:
         uses: docker/build-push-action@v4
         with:
           context: ./backend
-          file: ./backend/Dockerfile
+          file: ./backend/dockerfile
           push: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/wellmart-backend:latest
           
@@ -31,7 +31,7 @@ jobs:
         uses: docker/build-push-action@v4
         with:
           context: ./frontend
-          file: ./frontend/Dockerfile
+          file: ./frontend/dockerfile
           push: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/wellmart-frontend:latest
 
@@ -45,25 +45,22 @@ jobs:
           script: |
             # Login ke EC2 backend dari EC2 frontend dan jalankan perintah Docker
             chmod 400 aaws_pertama_saya.pem
-
-            # Menggunakan nama kunci yang benar untuk terhubung ke EC2 backend
             ssh -o StrictHostKeyChecking=no -i aaws_pertama_saya.pem ec2-user@${{ secrets.BACKEND_EC2_PRIVATE_IP }} << EOF
-             
               # Deployment Backend
-              docker pull ${{ secrets.DOCKERHUB_USERNAME }}/wellmart-backend:latest
-              docker stop wellmart-backend || true
-              docker rm wellmart-backend || true
-              docker run -d --name wellmart-backend --network host -p 3000:3000 \
+              sudo docker pull ${{ secrets.DOCKERHUB_USERNAME }}/wellmart-backend:latest
+              sudo docker stop wellmart-backend || true
+              sudo docker rm wellmart-backend || true
+              sudo docker run -d --name wellmart-backend --network host -p 3000:3000 \
                 --env-file /home/ec2-user/sp-wellmart/backend/.env \
                 ${{ secrets.DOCKERHUB_USERNAME }}/wellmart-backend:latest
               echo "Backend deployed."
             EOF
 
             # Deployment Frontend
-            docker pull ${{ secrets.DOCKERHUB_USERNAME }}/wellmart-frontend:latest
-            docker stop wellmart-frontend || true
-            docker rm wellmart-frontend || true
-            docker run -d --name wellmart-frontend --network host -p 5000:5000 \
+            sudo docker pull ${{ secrets.DOCKERHUB_USERNAME }}/wellmart-frontend:latest
+            sudo docker stop wellmart-frontend || true
+            sudo docker rm wellmart-frontend || true
+            sudo docker run -d --name wellmart-frontend --network host -p 5000:5000 \
               ${{ secrets.DOCKERHUB_USERNAME }}/wellmart-frontend:latest
             echo "Frontend deployed."
             
