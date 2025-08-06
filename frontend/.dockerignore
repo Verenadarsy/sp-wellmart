@@ -1,0 +1,11 @@
+# Direktori yang berisi modul-modul Node.js yang diinstal
+node_modules
+
+# Direktori atau file yang digunakan untuk debugging
+npm-debug.log*
+
+# File environment variables yang sensitif
+.env
+
+# Direktori Git
+.git
