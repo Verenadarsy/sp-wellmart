@@ -5,7 +5,7 @@ const { s3, bucketName } = require('../config/s3.js');
 
 
 // URL CloudFront Anda. Ganti dengan domain Anda.
-const CLOUDFRONT_DOMAIN = 'https://d12345.cloudfront.net';
+const CLOUDFRONT_DOMAIN = 'https://d1e23un174ohj2.cloudfront.net';
 
 // Fungsi untuk mengunggah file ke S3
 const uploadFile = (file) => {
