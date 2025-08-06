@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { getProducts, createProduct, updateProduct, deleteProduct, getProductById} = require('../controllers/ProductController');
-const authMiddleware = require('../middleware/authMiddleware');
+const authMiddleware = require('../Middleware/authMiddleware');
 const multer = require('multer');
 const upload = multer({ dest: 'uploads/' }); // Simpan file sementara di folder 'uploads'
 
