@@ -56,7 +56,7 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             productList.innerHTML = '<div style="text-align: center; padding: 2rem; color: #667eea; font-size: 1.1rem;">⏳ Memuat produk...</div>';
 
-            const res = await fetch('http://localhost:3000/api/products');
+            const res = await fetch('/api/products');
 
             if (!res.ok) {
                 throw new Error(`HTTP error! status: ${res.status}`);
