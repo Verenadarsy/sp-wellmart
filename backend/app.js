@@ -12,11 +12,7 @@ const app = express();
 
 // Middleware
 app.use(express.json());
-app.use(cors({
-  origin: 'http://54.252.237.142', // Ganti dengan IP Publik EC2 Anda
-  methods: ['GET', 'POST', 'PUT', 'DELETE'],
-  allowedHeaders: ['Content-Type', 'Authorization']
-}));
+app.use(cors());
 // Fungsi untuk menyinkronkan database dan membuat admin pertama
 const setupDatabase = async () => {
     try {
