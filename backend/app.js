@@ -26,7 +26,7 @@ const setupDatabase = async () => {
         const adminExists = await User.findOne({ where: { email: 'superadmin@wellmart.com' } });
         
         if (!adminExists) {
-            // Jika belum ada, buat admin super pertama
+            
             const salt = await bcrypt.genSalt(10);
             const hashedPassword = await bcrypt.hash('password123', salt); // Password default
 
