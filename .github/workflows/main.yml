@@ -26,7 +26,7 @@ jobs:
           file: ./backend/Dockerfile
           push: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/wellmart-backend:latest
-          
+
       - name: Build and push frontend Docker image
         uses: docker/build-push-action@v4
         with:
@@ -35,40 +35,10 @@ jobs:
           push: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/wellmart-frontend:latest
 
-      # 5. Deploy ke kedua EC2 melalui SSH ke EC2 Public
-      - name: Deploy containers via bastion host
-        uses: appleboy/ssh-action@v1.0.0
-        with:
-          host: ${{ secrets.FRONTEND_EC2_PUBLIC_IP }}
-          username: ec2-user
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          script: |
-            # Menghentikan proses PM2 yang lama di EC2 publik sebelum deploy
-            pm2 stop wellmart-frontend || true
-            pm2 delete wellmart-frontend || true
-
-            # Login ke EC2 backend dari EC2 frontend dan jalankan perintah Docker
-            chmod 400 aaws_pertama_saya.pem
-            ssh -o StrictHostKeyChecking=no -i aaws_pertama_saya.pem ec2-user@${{ secrets.BACKEND_EC2_PRIVATE_IP }} << EOF
-              # Deployment Backend
-              sudo docker pull ${{ secrets.DOCKERHUB_USERNAME }}/wellmart-backend:latest
-              sudo docker stop wellmart-backend || true
-              sudo docker rm wellmart-backend || true
-              
-              sudo docker run -d --name wellmart-backend --network host -p 3000:3000 \
-                --env-file /home/ec2-user/sp-wellmart/backend/.env \
-                ${{ secrets.DOCKERHUB_USERNAME }}/wellmart-backend:latest
-              echo "Backend deployed."
-            EOF
-
-            # Deployment Frontend (berada di EC2 publik)
-            sudo docker pull ${{ secrets.DOCKERHUB_USERNAME }}/wellmart-frontend:latest
-            sudo docker stop wellmart-frontend || true
-            sudo docker rm wellmart-frontend || true
-            sudo docker run -d --name wellmart-frontend --network host -p 5000:5000 \
-              ${{ secrets.DOCKERHUB_USERNAME }}/wellmart-frontend:latest
-            echo "Frontend deployed."
-            
-            # Restart Nginx
-            sudo systemctl restart nginx
-            echo "Nginx restarted."
+      - name: Simulate Deploy to EC2 (manual due to security rules)
+        run: |
+          echo "🚫 Deployment ke EC2 tidak dilakukan secara otomatis karena:"
+          echo "- Soal UTS mewajibkan Security Group SSH hanya dari IP publik pribadi."
+          echo "- GitHub Actions berjalan dari IP publik GitHub, bukan IP pribadi saya."
+          echo "✅ Oleh karena itu, proses deployment dilakukan manual melalui SSH dari laptop saya."
+          echo "Langkah-langkah manual termasuk: docker pull, docker stop/rm, docker run frontend & backend, serta restart nginx."
