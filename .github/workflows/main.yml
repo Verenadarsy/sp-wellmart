@@ -49,4 +49,3 @@ jobs:
           echo "- Soal UTS mewajibkan Security Group SSH hanya dari IP publik pribadi."
           echo "- GitHub Actions berjalan dari IP publik GitHub, bukan IP pribadi saya."
           echo "✅ Oleh karena itu, proses deployment dilakukan manual melalui SSH dari laptop saya."
-          echo "Langkah-langkah manual termasuk: docker pull, docker stop/rm, docker run frontend & backend, serta restart nginx."
