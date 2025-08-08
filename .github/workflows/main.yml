@@ -10,6 +10,14 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Install backend dependencies
+            working-directory: ./backend
+            run: npm install
+
+      - name: Run unit tests
+              working-directory: ./backend
+              run: npm test
+
       - name: Checkout code
         uses: actions/checkout@v3
 
